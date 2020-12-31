@@ -1,3 +1,7 @@
 pymongo
 tweepy
 dnspython
+
+pandas
+matplotlib
+numpy

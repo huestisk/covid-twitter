@@ -2,8 +2,8 @@
 .vscode
 
 # sensitive data
-#keys.txt
-#mongodb.txt
+keys.txt
+mongodb.txt
 
 ## Template starts here
 # Byte-compiled / optimized / DLL files

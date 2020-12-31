@@ -8,16 +8,16 @@ import operator
 # Establish connection with database
 client = MongoClient()
 db = client.test
-col = db.twitterBrazil
+col = db.twitterSpain
 
 #######################################################
 # Retrieve data from the mongodb database, choosing
 # the fields you'll need afterwards
 #######################################################
-my_tweets = db.twitterBrazil.find({},{'lang':1, '_id':0, 'text':1,
+my_tweets = db.twitterSpain.find({},{'lang':1, '_id':0, 'text':1,
 'entities.hashtags':1,'in_reply_to_status_id':1, 'is_quote_status':1,
 'retweeted_status':1, 'user.screen_name':1})
-numTweets = db.twitterBrazil.count()
+numTweets = db.twitterSpain.count()
 
 ####################################################
 # Plot of Languages (autodetected by Twitter)

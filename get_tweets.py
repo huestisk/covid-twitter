@@ -4,7 +4,11 @@ import json
 from pymongo import MongoClient
 
 # Hashtags
-WORDS = ['#covid','#coronavirus']
+WORDS = ['#covid','#coronavirus','#covid19','#corona']
+
+# Users
+USERS = ['sebastiankurz','martinschulz','SWagenknecht','GregorGysi',
+    'JunckerEU','MartinSonneborn','c_lindner','nicosemsrott']
 
 # Twitter Access
 CONSUMER_KEY = None
@@ -28,7 +32,8 @@ with open('mongodb.txt') as keys:
 
 
 class StreamListener(tweepy.StreamListener):    
-    # This is a class provided by tweepy to access the Twitter Streaming API. 
+    """This is a class provided by tweepy to access the Twitter Streaming API."""
+
     def on_connect(self):
         # Called initially to connect to the Streaming API
         print("You are now connected to the streaming API.")
@@ -39,13 +44,13 @@ class StreamListener(tweepy.StreamListener):
         return False
  
     def on_data(self, data):
-        #This is the meat of the script...it connects to your mongoDB and stores the tweet
+        # Connect to mongoDB and stores the tweet
         try:
             client = MongoClient('mongodb+srv://kevinhuestis:' + 
                 str(MONGO_PASSWORD) + '@cluster0.ahwbn.mongodb.net/' + 
                 str(MONGO_DB_NAME) + '?retryWrites=true&w=majority')
             
-            # Use test database. If it doesn't exist, it will be created.
+            # Use test database
             db = client.test
     
             # Decode the JSON from Twitter
@@ -58,19 +63,80 @@ class StreamListener(tweepy.StreamListener):
             # Print out a message to the screen that we have collected a tweet
             print("Tweet collected at " + str(created_at) + " from user @" + username)
             
-            # Insert the data into the mongoDB into a collection called twitter_search
-            # If twitter_search doesn't exist, it will be created.
+            # Insert the data into the mongoDB
             db.twitterSpain.insert_one(datajson)
 			
-			# How many tweets?
+			# How many tweets were saved
             print(db.twitterSpain.count_documents({}))
 
         except Exception as e:
            print(e)
 
-class SearchTwitter(tweepy.Cursor):
-    # This class uses tweepy.Cursor to search for hashtags
-    pass
+
+
+class SearchTwitter():
+    """Search for Tweets using the api"""
+
+    def __init__(self, api):
+        self.api = api
+        self.START_DATE = 2020
+
+        # Connect to mongoDB and stores the tweet
+        try:
+            self.client = MongoClient('mongodb+srv://kevinhuestis:' + 
+                str(MONGO_PASSWORD) + '@cluster0.ahwbn.mongodb.net/' + 
+                str(MONGO_DB_NAME) + '?retryWrites=true&w=majority')
+
+            # Use test database
+            self.db = self.client.test
+
+        except Exception as e:
+            print(e)
+
+    def search_by_hashtag(self, words):
+        """Search by Hashtag"""
+        for data in api.search(q=words):
+            try:      
+                # Decode the Tweet
+                datajson = json.loads(data)
+                
+                # Insert the data into the mongoDB
+                self.db.userTweets.insert_one(datajson)
+
+            except Exception as e:
+                print(e)  
+
+    
+    def search_by_user(self, user):
+        """ Search by User"""
+        for status in self.limit_handled(tweepy.Cursor(api.user_timeline, id=user).items()):
+
+            # Only search for tweets in 2020
+            if status.created_at.year < self.START_DATE:
+                break
+
+            try:      
+                # Decode the Tweet
+                datadump = json.dumps(status._json)
+                datajson = json.loads(datadump)
+                
+                # Insert the data into the mongoDB
+                self.db.userTweets.insert_one(datajson)
+
+            except Exception as e:
+                print(e)     
+
+
+    @classmethod
+    def limit_handled(self, cursor):
+        """Handles Twitter limit"""
+        while True:
+            try:
+                yield cursor.next()
+            except tweepy.RateLimitError:
+                time.sleep(15 * 60)
+            except Exception as e:
+                print(e)
 
 
 if __name__ == "__main__":
@@ -80,10 +146,14 @@ if __name__ == "__main__":
     auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
     api = tweepy.API(auth, wait_on_rate_limit=True)
 
-    # Search
-    tweets = api.search(q=WORDS)
-    print(tweets.num_tweets)
-    # # Set up the listener. The 'wait_on_rate_limit=True' is needed to help with Twitter API rate limiting.
+    """Searching starts here"""
+    searcher = SearchTwitter(api)
+
+    for user in USERS:
+        searcher.search_by_user(user)
+        print("Finished collecting Tweets from user " + user)
+
+    """Streamer starts here"""
     # listener = StreamListener(api=tweepy.API(wait_on_rate_limit=True)) 
     # streamer = tweepy.Stream(auth=auth, listener=listener)
     
