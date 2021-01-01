@@ -13,20 +13,24 @@ def makePlot(data, title, xlabel, ylabel):
     xlabel : str
     ylabel : str
     """
+    data_copy = data.copy()
     
     # Create Figure
     fig, ax = plt.subplots()
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
     ax.set_title(title)
+    ax.set_xlim(1, 12)
     ax.grid(True)
 
     # Convert dates
-    date = [int(d[5:7])-1+int(d[-2:])/32 for d in data[:,0]]
-    ax.set_xlim(1, 12)
+    data_copy[:,0] = [int(d[5:7])-1+int(d[-2:])/32 for d in data_copy[:,0]]
+
+    # Resort
+    data_copy = data_copy[data_copy[:,0].argsort()]
 
     # Plot
-    ax.plot(date, data[:,1])
+    ax.plot(data_copy[:,0], data_copy[:,1])
     plt.show()
 
 
@@ -78,20 +82,20 @@ if __name__=="__main__":
     new_cases_smoothed = data_ger[['date','new_cases_smoothed']].values
 
     # Plot
-    # makePlot(new_cases_smoothed, 'Smoothed Daily Cases Germany', 'Date [Months]', 'Daily Cases')
+    makePlot(new_cases_smoothed, 'Smoothed Daily Cases Germany', 'Date [Months]', 'Daily Cases')
 
     # Get Rates of Change
     vel_cases, acc_cases = rateOfChange(new_cases_smoothed)
 
     # Plot
-    # makePlot(vel_cases, 'Rate of Change Daily Cases Germany', 'Date [Months]', 'Rate of Change')
+    makePlot(vel_cases, 'Rate of Change Daily Cases Germany', 'Date [Months]', 'Rate of Change')
 
     # Smooth
     vel_cases_smoothed = sevenDayAverage(vel_cases)
     acc_cases_smoothed = sevenDayAverage(acc_cases)
 
     # Plot
-    # makePlot(vel_cases_smoothed, 'Velocity of Daily Cases Germany', 'Date [Months]', 'Rate of Change')
+    makePlot(vel_cases_smoothed, 'Velocity of Daily Cases Germany', 'Date [Months]', 'Rate of Change')
 
     # Get critical dates
     MIN_DAILY_CASES = 2000
