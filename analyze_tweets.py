@@ -5,7 +5,7 @@ from collections import Counter
 import numpy as np
 import operator
 
-from covid import makePlot
+from analyze_covid import makePlot
 
 # Connect to mongoDB
 MONGO_DB_NAME = None
@@ -144,10 +144,8 @@ if __name__ == "__main__":
         client = MongoClient('mongodb+srv://kevinhuestis:' + 
             str(MONGO_PASSWORD) + '@cluster0.ahwbn.mongodb.net/' + 
             str(MONGO_DB_NAME) + '?retryWrites=true&w=majority')
-        
         # Use test database
         db = client.test
-
         # Collection
         col = db.userTweets
     except Exception as e:
@@ -164,3 +162,5 @@ if __name__ == "__main__":
     covid_tweet_dates = covidHashtags(my_tweets)
 
     makePlot(covid_tweet_dates, 'Covid Tweet Dates', 'Date [Months]', 'Number of Tweets')
+
+

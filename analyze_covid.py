@@ -119,5 +119,5 @@ if __name__=="__main__":
     crit_dates_idx = [date in rate_dates for date in high_dates]
     critical_dates = high_dates[crit_dates_idx]
 
-    """pause"""
+
 
