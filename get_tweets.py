@@ -10,6 +10,10 @@ WORDS = ['#covid','#coronavirus','#covid19','#corona']
 USERS = ['sebastiankurz','martinschulz','SWagenknecht','GregorGysi',
     'JunckerEU','MartinSonneborn','c_lindner','nicosemsrott']
 
+ALT_USERS = ['tagesschau', 'derspiegel', 'zeitonline', 'spiegel_eil', 'BILD', 
+    'SZ', 'welt', 'sternde', 'ZDF', 'ZDFheute', 'faznet', 'ToniKroos', 'FCBayern',
+    'heidiklum', 'janboehm', 'officiallyjoko']
+
 # Twitter Access
 CONSUMER_KEY = None
 CONSUMER_SECRET = None
@@ -109,7 +113,7 @@ class SearchTwitter():
     
     def search_by_user(self, user):
         """ Search by User"""
-        for status in self.limit_handled(tweepy.Cursor(api.user_timeline, id=user).items()):
+        for status in tweepy.Cursor(api.user_timeline, id=user).items():
 
             # Only search for tweets in 2020
             if status.created_at.year < self.START_DATE:
@@ -119,10 +123,9 @@ class SearchTwitter():
                 # Decode the Tweet
                 datadump = json.dumps(status._json)
                 datajson = json.loads(datadump)
-                
                 # Insert the data into the mongoDB
-                self.db.userTweets.insert_one(datajson)
-
+                # self.db.userTweets.insert_one(datajson)
+                self.db.altUserTweets.insert_one(datajson)
             except Exception as e:
                 print(e)     
 
@@ -135,6 +138,8 @@ class SearchTwitter():
                 yield cursor.next()
             except tweepy.RateLimitError:
                 time.sleep(15 * 60)
+            except StopIteration:
+                break
             except Exception as e:
                 print(e)
 
@@ -149,7 +154,7 @@ if __name__ == "__main__":
     """Searching starts here"""
     searcher = SearchTwitter(api)
 
-    for user in USERS:
+    for user in ALT_USERS:
         searcher.search_by_user(user)
         print("Finished collecting Tweets from user " + user)
 
